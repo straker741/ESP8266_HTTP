@@ -18,6 +18,7 @@
 ESP8266_WLAN wifi(RX_PIN, TX_PIN, RST_PIN);
 WifiMessage *msg;
 
+byte code = 0;
 
 void setup() {
     Serial.begin(9600);
