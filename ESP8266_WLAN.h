@@ -52,7 +52,6 @@ public:
     bool isActive();
     bool init();
 
-    bool connectToAP(String & ssid, String & pass);
     bool connectToAP(const char * ssid, const char * pass);
     bool disconnectFromAP();
 
@@ -64,12 +63,14 @@ public:
     bool createTCPServer(const char * port);
     bool deleteTCPServer();
 
-    bool send(char channel, String& msg, bool eol = true, bool sendNow = true);
-    bool send(char channel, const char * msg, bool eol = true, bool sendNow = true);
+    bool send(char channel, String& message, bool eol = true, bool sendNow = true);
+    bool send(char channel, const char * message, bool eol = true, bool sendNow = true);
+    bool send_PROGMEM(char channel, const char * message);
 
     byte update();
     WifiMessage * getWifiMessage();
-
+protected:
+    WifiMessage msg;
 private:
     byte _RST_PIN;
 
@@ -93,7 +94,6 @@ private:
     bool hardRestart();
 
     void updateWifiMessage();
-    WifiMessage msg;
     WifiConnection _connections[MAX_CONNECTIONS];
 };
 

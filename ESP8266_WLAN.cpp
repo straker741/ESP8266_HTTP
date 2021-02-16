@@ -7,7 +7,6 @@ const char PROGMEM_CLOSED[] PROGMEM = "CLOSED";
 const char PROGMEM_STAIP[] PROGMEM = "STAIP,\"";
 const char PROGMEM_STAMAC[] PROGMEM = "STAMAC,\"";
 const char PROGMEM_STATUS[] PROGMEM = "STATUS:";
-const char PROGMEM_PROMPT[] PROGMEM = ">";
 const char PROGMEM_WIFI_DISCONNECT[] PROGMEM = "WIFI DISCONNECT";
 
 // Requests
@@ -105,17 +104,6 @@ bool ESP8266_WLAN::init() {
  * @param pass Passphrase
  * @return true when successful.
  */
-bool ESP8266_WLAN::connectToAP(String & ssid, String & pass) {
-    return connectToAP(ssid.c_str(), pass.c_str());
-}
-
-
-/**
- * @brief Tries to connect to Access Point.
- * @param ssid Access Point Identifier
- * @param pass Passphrase
- * @return true when successful.
- */
 bool ESP8266_WLAN::connectToAP(const char * ssid, const char * pass) {
     strncpy(_ssid, ssid, sizeof(_ssid));
     strncpy(_pass, pass, sizeof(_pass));
@@ -161,9 +149,9 @@ bool ESP8266_WLAN::disconnectFromAP() {
 char * ESP8266_WLAN::getIP() {
     writeCommand(PROGMEM_CIFSR);
     if (!readCommand(PROGMEM_CIFSR))
-        return "undefined";
+        return "";
     if (readData() != 1)
-        return "undefined";
+        return "";
 
     // Data are stored in BUFFER
     const char * ps = strstr_P(BUFFER, PROGMEM_STAIP) + strlen_P(PROGMEM_STAIP);
@@ -182,9 +170,9 @@ char * ESP8266_WLAN::getIP() {
 char* ESP8266_WLAN::getMAC() {
     writeCommand(PROGMEM_CIFSR);
     if (!readCommand(PROGMEM_CIFSR))
-        return "undefined";
+        return "";
     if (readData() != 1)
-        return "undefined";
+        return "";
 
     // Data are stored in BUFFER
     const char * ps = strstr_P(BUFFER, PROGMEM_STAMAC) + strlen_P(PROGMEM_STAMAC);
@@ -307,12 +295,12 @@ bool ESP8266_WLAN::anyClientConnected() {
  * @param sendNow false - message is saved only to the buffer.
  * @return true when success.
  */
-bool ESP8266_WLAN::send(char channel, String& msg, bool eol, bool sendNow) {
-    return send(channel, msg.c_str(), eol, sendNow);
+bool ESP8266_WLAN::send(char channel, String& message, bool eol, bool sendNow) {
+    return send(channel, message.c_str(), eol, sendNow);
 }
 
 
-bool ESP8266_WLAN::send(char channel, const char * msg, bool eol, bool sendNow) {
+bool ESP8266_WLAN::send(char channel, const char * message, bool eol, bool sendNow) {
     // Set flag "sending" if first send command
     if (!_flags.sending) {
         _flags.sending = true;
@@ -320,9 +308,9 @@ bool ESP8266_WLAN::send(char channel, const char * msg, bool eol, bool sendNow) 
     }
 
     // Copy contents of the message to the BUFFER
-    strcpy(&BUFFER[CUR_BUFFER_SIZE], msg);
+    strcpy(&BUFFER[CUR_BUFFER_SIZE], message);
     // Update CUR_BUFFER_SIZE
-    CUR_BUFFER_SIZE += strlen(msg);
+    CUR_BUFFER_SIZE += strlen(message);
 
     if (eol) {
         BUFFER[CUR_BUFFER_SIZE++] = '\r';
@@ -332,6 +320,30 @@ bool ESP8266_WLAN::send(char channel, const char * msg, bool eol, bool sendNow) 
 
     if (!sendNow)
         return true;
+
+    writeCommand(PROGMEM_CIPSEND, false);
+    print(channel);
+    print(",");
+    println(CUR_BUFFER_SIZE);
+
+    if (checkResponse() == 1) {
+        print(BUFFER); // send message
+        if (checkResponse() == 4) {
+            _flags.sending = false;
+            return true;
+        }
+    }
+    _flags.sending = false;
+    return false;
+}
+
+/**
+ * message is loaded from Flash (PROGMEM). MUST END WITH \r\n!
+ */
+bool ESP8266_WLAN::send_PROGMEM(char channel, const char * message) {
+    _flags.sending = true;
+    strcpy_P(BUFFER, message);
+    CUR_BUFFER_SIZE = strlen_P(message);
 
     writeCommand(PROGMEM_CIPSEND, false);
     print(channel);
