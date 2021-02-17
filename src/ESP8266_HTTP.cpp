@@ -25,6 +25,7 @@ const char PROGMEM_HTTP_NOT_FOUND[] PROGMEM = "HTTP/1.1 404 NOT FOUND\r\nConnect
 /*******************************
  * ---------- ROUTE ---------- *
  *******************************/
+// Constructor
 Route::Route() {
     _id = 0;
     _method = HTTP_Method::HTTP_METHOD_LENGTH;
@@ -32,11 +33,19 @@ Route::Route() {
     _params = NULL;
 }
 
+
+// Destructor
 Route::~Route() {}
 
+
+/**
+ * @param method HTTP_Method enum specifies HTTP method.
+ * @param path corresponding URL path with the method (example: "/test").
+ */
 Route::Route(HTTP_Method method, const char * path) {
     set(0, method, path);
 }
+
 
 void Route::set(byte ID, HTTP_Method method, const char * path) {
     _id = ID;
@@ -46,6 +55,11 @@ void Route::set(byte ID, HTTP_Method method, const char * path) {
     strcpy(_path, path);
 }
 
+
+/**
+ * @brief Sets the received parameters of the evoked route
+ * @param params string of params in format for example a=5&b=7, NULL does not save anything
+ */
 void Route::setParams(const char * params) {
     if (params == NULL) {
         _params = NULL;
@@ -57,6 +71,7 @@ void Route::setParams(const char * params) {
     }
 }
 
+
 bool Route::operator==(const Route & route) {
     return (_method == route._method) && (strcmp(_path, route._path) == 0);
 }
@@ -65,17 +80,31 @@ bool Route::operator==(const Route & route) {
 /********************************
  * ---------- ROUTER ---------- *
  ********************************/
+// Constructor
 Router::Router() {
     _size = 0;
 }
 
+
+// Destructor
 Router::~Router() {}
 
+
+/**
+ * @brief Routes which are not registered will be automatically refused with 404 NOT FOUND.
+ * @param method HTTP_Method enum specifies HTTP method.
+ * @param path corresponding URL path with the method (example: "/test").
+ */
 void Router::registerRoute(HTTP_Method method, const char * path) {
     _routes[_size].set(_size + 1, method, path);
     _size++;
 }
 
+
+/**
+ * @brief Chceks whether the requested route is registered.
+ * @return *Route - pointer to the route which was requested, otherwise NULL.
+ */
 Route * Router::isRegistered(const char * method, const char * path) {
     if (strcmp("GET", method) == 0)
         return isRegistered(HTTP_Method::GET, path);
@@ -98,6 +127,11 @@ Route * Router::isRegistered(const char * method, const char * path) {
     return NULL;
 }
 
+
+/**
+ * @brief Chceks whether the requested route is registered.
+ * @return *Route - pointer to the route which was requested, otherwise NULL.
+ */
 Route * Router::isRegistered(HTTP_Method method, const char * path) {
     Route route = Route(method, path);
     for (size_t index = 0; index < _size; index++) {
@@ -111,6 +145,7 @@ Route * Router::isRegistered(HTTP_Method method, const char * path) {
 /**************************************
  * ---------- ESP8266_HTTP ---------- *
  **************************************/
+// Constructor
 ESP8266_HTTP::ESP8266_HTTP(byte RX_PIN, byte TX_PIN, byte RST_PIN):
 ESP8266_WLAN::ESP8266_WLAN(RX_PIN, TX_PIN, RST_PIN),
 Router::Router()
@@ -118,14 +153,17 @@ Router::Router()
 
 }
 
+
 // Destructor
 ESP8266_HTTP::~ESP8266_HTTP() {}
 
+
 /**
- * 0 - Success
- * 1 - Error: Unable to initialize ESP8266
- * 2 - Error: Unable to connect to Access Point
- * 3 - Error: Unable to start TCP server
+ * @brief Initializes ESP8266, connects to Access Point and creates TCP server.
+ * @param ssid Access Point Identifier.
+ * @param pass Passphrase.
+ * @param port Port at which to create TCP server.
+ * @return 0 - Success; 1 - Error: Unable to initialize ESP8266; 2 - Error: Unable to connect to Access Point; 3 - Error: Unable to start TCP server
  */
 byte ESP8266_HTTP::start(const char * ssid, const char * pass, const char * port) {
     if (!init())
@@ -137,14 +175,21 @@ byte ESP8266_HTTP::start(const char * ssid, const char * pass, const char * port
     return 0;
 }
 
+
 bool ESP8266_HTTP::isHTTP() {
     return isHTTP(msg.message);
 }
 
+
+/**
+ * @brief Looks for "HTTP/" in the message.
+ * @return true when it is HTTP request.
+ */
 bool ESP8266_HTTP::isHTTP(const char * message) {
     // GET / HTTP/1.1
     return (strstr(message, "HTTP/") != NULL);
 }
+
 
 /**
  * Checks whether it is HTTP request. Then it takes apart the request. 
@@ -189,12 +234,14 @@ Route * ESP8266_HTTP::preprocessRequest() {
     return pRoute;
 }
 
-// Sends generic NOT FOUND response
+
+// Sends generic 404 NOT FOUND response
 void ESP8266_HTTP::send404() {
     send_PROGMEM(msg.channel, PROGMEM_HTTP_NOT_FOUND);
 }
 
-// Sends generic OK response
+
+// Sends generic 200 OK response
 void ESP8266_HTTP::send200() {
     send_PROGMEM(msg.channel, PROGMEM_HTTP_OK);
 }

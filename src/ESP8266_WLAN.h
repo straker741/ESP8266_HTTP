@@ -8,11 +8,14 @@
 #define ESP8266_WLAN_H
 
 #include "Arduino.h"
-#include "ESP8266_AT.h"
+#include <SoftwareSerial.h>
 #include <avr/pgmspace.h>
 
-#define MAX_RESET_ATTEMPTS 3
+#define MAX_BUFFER_SIZE 512
 #define MAX_CONNECTIONS 3
+#define MAX_RESET_ATTEMPTS 3
+
+typedef unsigned char byte;
 
 
 struct WifiMessage {
@@ -69,6 +72,18 @@ public:
 
     byte update();
     WifiMessage * getWifiMessage();
+
+    byte readData();
+    byte readData(size_t origin);
+    byte checkResponse();
+
+    void writeCommand(const char * cmd, bool eol = true);
+    bool readCommand(const char * cmd, bool progmem = true);
+
+    size_t readLine(char * buf, size_t len);
+
+    char BUFFER[MAX_BUFFER_SIZE];
+    size_t CUR_BUFFER_SIZE;
 protected:
     WifiMessage msg;
 private:
