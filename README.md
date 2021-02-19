@@ -87,7 +87,7 @@ byte ESP8266_WLAN::update();
 ```
 
 ### send()
-Use this method when responding to a TCP message (return code 3 of update()). This method presumes that the "message" argument is string literal saved in RAM. If the "message" argument is saved in FLASH (PROGMEM) then use method send_PROGMEM(). Note that It is possible to just use print() and println() methods of Print class.
+Use this method when responding to a TCP message (return code 3 of update()). This method presumes that the "message" argument is string literal saved in RAM. If the "message" argument is saved in FLASH (PROGMEM) then use method send_PROGMEM().
 ```cpp
 /**
  * @brief Sends message. Function assumes the channel is connected!

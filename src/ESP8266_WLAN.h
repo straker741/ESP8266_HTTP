@@ -46,7 +46,7 @@ struct Flags {
          unexpectedEcho:1;
 };
 
-class ESP8266_WLAN : public ESP8266_AT
+class ESP8266_WLAN : public SoftwareSerial
 {
 public:
     ESP8266_WLAN(byte RX_PIN, byte TX_PIN, byte RST_PIN);
