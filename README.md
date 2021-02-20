@@ -159,10 +159,12 @@ Make sure the following constants suit your application.
 
 
 ## Known issues and limitations
-* size of BUFFER: Able to hold only up to 500 bytes.
-* no collision detection
+* Size of BUFFER: Able to hold only up to 500 bytes.
+* No collision detection
+* No malfunction detection (yet)
 * SoftwareSerial's serial speed is limited (default 9600 baud)
 * It is forbidden to issue AT requests in every loop cycle - ESP8266 is not able to respond that fast. Plus you might miss a message from ESP8266 regarding cases 1, 2 and 3 of update() method.
+
 
 ## ESP8266 AT commands reference:
 * https://github.com/espressif/esp8266_at/wiki
