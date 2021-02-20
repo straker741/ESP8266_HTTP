@@ -95,7 +95,8 @@ void processRequest(Route * route) {
                 // Here update Arduino state ...
 
                 // Send response
-                server.send_PROGMEM(msg->channel, PROGMEM_HTTP_REPLY2); // Custom static HTTP response
+                server.send_PROGMEM(PROGMEM_HTTP_REPLY2); // Custom static HTTP response
+                server.send(msg->channel);
                 server.closeConnection(msg->channel);
                 break;
             case 1:
@@ -104,6 +105,7 @@ void processRequest(Route * route) {
 
                 // Send response
                 server.send200();
+                server.send(msg->channel);
                 server.closeConnection(msg->channel);
                 break;
             case 0:

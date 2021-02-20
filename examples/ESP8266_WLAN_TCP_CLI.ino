@@ -68,7 +68,8 @@ void loop() {
             Serial.print(msg->message);
             Serial.println("\"");
 
-            wifi.send(msg->channel, "Hello, World!");
+            wifi.sendln("Hello, World!");
+            wifi.send(msg->channel);
             if (!wifi.closeConnection(msg->channel))
               Serial.println("Unsuccessful!");
             break;

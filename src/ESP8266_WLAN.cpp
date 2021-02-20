@@ -294,21 +294,14 @@ bool ESP8266_WLAN::anyClientConnected() {
     return false;
 }
 
-
+/***************************************
+ * ---------- SEND METHODS ----------- *
+ ***************************************/
 /**
- * @brief Sends message. Function assumes the channel is connected!
- * @param channel Channel to which the message should be sent.
- * @param message End every line with
- * @param eol End Of Line flag
- * @param sendNow false - message is saved only to the buffer.
- * @return true when success.
+ * @brief Appends message to the BUFFER.
+ * @param message Text string to be sent
  */
-bool ESP8266_WLAN::send(char channel, String& message, bool eol, bool sendNow) {
-    return send(channel, message.c_str(), eol, sendNow);
-}
-
-
-bool ESP8266_WLAN::send(char channel, const char * message, bool eol, bool sendNow) {
+void ESP8266_WLAN::send(const char * message) {
     // Set flag "sending" if first send command
     if (!_flags.sending) {
         _flags.sending = true;
@@ -319,40 +312,113 @@ bool ESP8266_WLAN::send(char channel, const char * message, bool eol, bool sendN
     strcpy(&BUFFER[CUR_BUFFER_SIZE], message);
     // Update CUR_BUFFER_SIZE
     CUR_BUFFER_SIZE += strlen(message);
+}
 
-    if (eol) {
-        BUFFER[CUR_BUFFER_SIZE++] = '\r';
-        BUFFER[CUR_BUFFER_SIZE++] = '\n';
-        BUFFER[CUR_BUFFER_SIZE] = '\0';
+
+void ESP8266_WLAN::send(String & message) {
+    send(message.c_str());
+}
+
+
+/**
+ * @brief Appends number as text string to the BUFFER.
+ * @param num Number to be sent
+ */
+void ESP8266_WLAN::send(int num) {
+    // Set flag "sending" if first send command
+    if (!_flags.sending) {
+        _flags.sending = true;
+        CUR_BUFFER_SIZE = 0;
     }
 
-    if (!sendNow)
-        return true;
+    // Copy contents of the message to the BUFFER
+    sprintf(&BUFFER[CUR_BUFFER_SIZE], "%d", num);
+    // Update CUR_BUFFER_SIZE
+    CUR_BUFFER_SIZE += num;
+}
 
-    writeCommand(PROGMEM_CIPSEND, false);
-    print(channel);
-    print(",");
-    println(CUR_BUFFER_SIZE);
 
-    if (checkResponse() == 1) {
-        print(BUFFER); // send message
-        if (checkResponse() == 4) {
-            _flags.sending = false;
-            return true;
-        }
+void ESP8266_WLAN::send(float num) {
+    // Set flag "sending" if first send command
+    if (!_flags.sending) {
+        _flags.sending = true;
+        CUR_BUFFER_SIZE = 0;
     }
-    _flags.sending = false;
-    return false;
+
+    // Copy contents of the message to the BUFFER
+    sprintf(&BUFFER[CUR_BUFFER_SIZE], "%.2f", num);
+    // Update CUR_BUFFER_SIZE
+    CUR_BUFFER_SIZE += (int)num + 2;
 }
 
 /**
- * message is loaded from Flash (PROGMEM). MUST END WITH \r\n!
+ * @brief Appends message to the BUFFER. Use this method when text string is saved in Flash (PROGMEM).
+ * @param message A pointer to text string saved in Flash (PROGMEM).
  */
-bool ESP8266_WLAN::send_PROGMEM(char channel, const char * message) {
-    _flags.sending = true;
-    strcpy_P(BUFFER, message);
-    CUR_BUFFER_SIZE = strlen_P(message);
+void ESP8266_WLAN::send_PROGMEM(const char * message) {
+    // Set flag "sending" if first send command
+    if (!_flags.sending) {
+        _flags.sending = true;
+        CUR_BUFFER_SIZE = 0;
+    }
 
+    // Copy contents of the message to the BUFFER
+    strcpy_P(&BUFFER[CUR_BUFFER_SIZE], message);
+    // Update CUR_BUFFER_SIZE
+    CUR_BUFFER_SIZE += strlen_P(message);
+}
+
+
+/**
+ * @brief Saves message to the BUFFER and appends CRLF at the end.
+ * @param message Message to be sent
+ */
+void ESP8266_WLAN::sendln(const char * message) {
+    send(message);
+    BUFFER[CUR_BUFFER_SIZE++] = '\r';
+    BUFFER[CUR_BUFFER_SIZE++] = '\n';
+    BUFFER[CUR_BUFFER_SIZE] = '\0';
+}
+
+
+void ESP8266_WLAN::sendln(String & message) {
+    sendln(message.c_str());
+}
+
+
+void ESP8266_WLAN::sendln(int num) {
+    send(num);
+    BUFFER[CUR_BUFFER_SIZE++] = '\r';
+    BUFFER[CUR_BUFFER_SIZE++] = '\n';
+    BUFFER[CUR_BUFFER_SIZE] = '\0';
+}
+
+
+void ESP8266_WLAN::sendln(float num) {
+    send(num);
+    BUFFER[CUR_BUFFER_SIZE++] = '\r';
+    BUFFER[CUR_BUFFER_SIZE++] = '\n';
+    BUFFER[CUR_BUFFER_SIZE] = '\0';
+}
+
+
+/**
+ * Message is loaded from Flash (PROGMEM) and saved to the BUFFER and appends CRLF at the end.
+ */
+void ESP8266_WLAN::sendln_PROGMEM(const char * message) {
+    send_PROGMEM(message);
+    BUFFER[CUR_BUFFER_SIZE++] = '\r';
+    BUFFER[CUR_BUFFER_SIZE++] = '\n';
+    BUFFER[CUR_BUFFER_SIZE] = '\0';
+}
+
+
+/**
+ * @brief Sends message saved in the BUFFER.
+ * @param channel Channel to which to sent.
+ * @return true when success.
+ */
+bool ESP8266_WLAN::send(char channel) {
     writeCommand(PROGMEM_CIPSEND, false);
     print(channel);
     print(",");

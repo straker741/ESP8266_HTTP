@@ -66,9 +66,19 @@ public:
     bool createTCPServer(const char * port);
     bool deleteTCPServer();
 
-    bool send(char channel, String& message, bool eol = true, bool sendNow = true);
-    bool send(char channel, const char * message, bool eol = true, bool sendNow = true);
-    bool send_PROGMEM(char channel, const char * message);
+    void send(const char * message);
+    void send(String& message);
+    void send(int num);
+    void send(float num);
+    void send_PROGMEM(const char * message);
+
+    void sendln(const char * message);
+    void sendln(String& message);
+    void sendln(int num);
+    void sendln(float num);
+    void sendln_PROGMEM(const char * message);
+
+    bool send(char channel);
 
     byte update();
     WifiMessage * getWifiMessage();

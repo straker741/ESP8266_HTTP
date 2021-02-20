@@ -216,6 +216,7 @@ Route * ESP8266_HTTP::preprocessRequest() {
     if (pRoute == NULL) {
         // send Error page
         send404();
+        send(msg.channel);
         closeConnection(msg.channel);
         return NULL;
     }
@@ -237,11 +238,11 @@ Route * ESP8266_HTTP::preprocessRequest() {
 
 // Sends generic 404 NOT FOUND response
 void ESP8266_HTTP::send404() {
-    send_PROGMEM(msg.channel, PROGMEM_HTTP_NOT_FOUND);
+    send_PROGMEM(PROGMEM_HTTP_NOT_FOUND);
 }
 
 
 // Sends generic 200 OK response
 void ESP8266_HTTP::send200() {
-    send_PROGMEM(msg.channel, PROGMEM_HTTP_OK);
+    send_PROGMEM(PROGMEM_HTTP_OK);
 }

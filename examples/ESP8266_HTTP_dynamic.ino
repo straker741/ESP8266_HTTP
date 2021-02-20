@@ -77,13 +77,14 @@ void processRequest(Route * route) {
                 itoa(strlen(s), g, 10);
 
                 // Send response
-                server.send(msg->channel, "HTTP/1.1 200 OK", true, false);
-                server.send(msg->channel, "Connection: Closed", true, false);
-                server.send(msg->channel, "Content-Type: application/json", true, false);
-                server.send(msg->channel, "Content-Length: ", false, false);
-                server.send(msg->channel, g, true, false);
-                server.send(msg->channel, "", true, false);
-                server.send(msg->channel, s);
+                server.sendln("HTTP/1.1 200 OK");
+                server.sendln("Connection: Closed");
+                server.sendln("Content-Type: application/json");
+                server.send("Content-Length: ");
+                server.sendln(g);
+                server.sendln("");
+                server.sendln(s);
+                server.send(msg->channel);
 
                 server.closeConnection(msg->channel);
                 break;

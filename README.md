@@ -86,31 +86,6 @@ Checks serial for any incomming messages. If there is a message it automatically
 byte ESP8266_WLAN::update();
 ```
 
-### send()
-Use this method when responding to a TCP message (return code 3 of update()). This method presumes that the "message" argument is string literal saved in RAM. If the "message" argument is saved in FLASH (PROGMEM) then use method send_PROGMEM().
-```cpp
-/**
- * @brief Sends message. Function assumes the channel is connected!
- * @param channel Channel to which the message should be sent.
- * @param message End every line with
- * @param eol End Of Line flag
- * @param sendNow false - message is saved only to the BUFFER.
- * @return true when success.
- */
-bool ESP8266_WLAN::send(char channel, const char * message, bool eol, bool sendNow);
-```
-
-### send_PROGMEM()
-Use this method when responding to a TCP message. This method presumes that the "message" argument is string literal saved in FLASH (PROGMEM)
-```cpp
-/**
- * @brief Message is loaded from Flash (PROGMEM). MUST END WITH \r\n !!!
- * @param channel Channel to which the message should be sent.
- * @param message End every line with
- */
-bool ESP8266_WLAN::send_PROGMEM(char channel, const char * message);
-```
-
 ### preprocessRequest()
 Takes care of every request which is not registered.
 ```cpp
@@ -121,6 +96,47 @@ Takes care of every request which is not registered.
  */
 Route * ESP8266_HTTP::preprocessRequest();
 ```
+
+## Response to a request
+True nature of send() methods is that it actually does not send the message but rather appends it to the BUFFER. Only when the parameter of send() method is channel, it actually sends the whole content of the BUFFER.
+```cpp
+/**
+ * @brief Appends message to the BUFFER.
+ * @param message Text string to be sent
+ */
+void send(const char * message);
+void send(String& message);
+
+/**
+ * @brief Appends number as text string to the BUFFER.
+ * @param num Number to be sent
+ */
+void send(int num);
+void send(float num);
+
+/**
+ * @brief Appends message to the BUFFER. Use this method when text string is saved in Flash (PROGMEM).
+ * @param message A pointer to text string saved in Flash (PROGMEM).
+ */
+void send_PROGMEM(const char * message);
+
+/**
+ * Exacly like send() but it also appends CRLF
+ */
+void sendln(const char * message);
+void sendln(String& message);
+void sendln(int num);
+void sendln(float num);
+void sendln_PROGMEM(const char * message);
+
+/**
+ * @brief Sends message saved in the BUFFER.
+ * @param channel Channel to which to sent.
+ * @return true when success.
+ */
+bool send(char channel);
+```
+Do not forget to call last send(channel) method, specifying whom to send the message.
 
 ## Constants
 Make sure the following constants suit your application.
